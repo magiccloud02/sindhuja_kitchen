@@ -1,0 +1,103 @@
+
+# ==========================================
+# WORKFLOW NAME
+# ==========================================
+name: Sindhu Kitchen - Docker CI Pipeline
+
+# ==========================================
+# TRIGGERS
+# ==========================================
+on:
+  push:
+    branches:
+      - 'develop/26.4.0.0'
+
+  pull_request:
+    branches:
+      - 'develop/26.4.0.0'
+
+  workflow_dispatch:
+
+# ==========================================
+# ENVIRONMENT VARIABLES
+# ==========================================
+env:
+  IMAGE_NAME: sindhuskitche
+  IMAGE_TAG: v1
+
+# ==========================================
+# JOBS
+# ==========================================
+jobs:
+
+  # ========================================
+  # JOB 1: DOCKER BUILD
+  # ========================================
+  docker-build:
+
+    # RUNNER
+    runs-on: ubuntu-latest
+
+    # JOB TIMEOUT
+    timeout-minutes: 30
+
+    # ======================================
+    # STEPS
+    # ======================================
+    steps:
+
+      # STEP 1: CLONE GITHUB REPOSITORY
+      - name: Clone GitHub Repository
+        uses: actions/checkout@v4
+        with:
+          repository: magiccloud02/sindhuja_kitchen
+          ref: develop/26.4.0.0
+
+      # STEP 2: CHECK WORKSPACE
+      - name: Check Workspace
+        run: |
+          echo "Checking workspace..."
+          pwd
+          ls -la
+
+      # STEP 3: CHECK DOCKERFILE
+      - name: Check Dockerfile
+        run: |
+          if [ ! -f Dockerfile ]; then
+            echo "ERROR: Dockerfile not found!"
+            exit 1
+          fi
+          echo "Dockerfile found successfully!"
+
+      # STEP 4: CHECK JAR FILE
+      - name: Check JAR File
+        run: |
+          find . -maxdepth 2 -type f -name "*.jar"
+
+      # STEP 5: CHECK DOCKER VERSION
+      - name: Check Docker Version
+        run: docker --version
+
+      # STEP 6: BUILD DOCKER IMAGE
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
+
+      # STEP 7: VERIFY DOCKER IMAGE
+      - name: Verify Docker Image
+        run: docker images
+
+      # STEP 8: INSPECT DOCKER IMAGE
+      - name: Inspect Docker Image
+        run: |
+          docker image inspect \
+            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      # STEP 9: FINAL STATUS
+      - name: Build Completed
+        run: |
+          echo "================================"
+          echo "Sindhu Kitchen Docker Build SUCCESS"
+          echo "Image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+          echo "================================"
